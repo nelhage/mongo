@@ -231,6 +231,16 @@ namespace replset {
         return _oplogMarker.haveCursor();
     }
 
+    void BackgroundSync::waitsecs(int secs) {
+        boost::xtime xt;
+        boost::xtime_get(&xt, boost::TIME_UTC_);
+        xt.sec += secs;
+        boost::unique_lock<boost::mutex> lck(_mutex);
+        while (!(_assumingPrimary || theReplSet->isPrimary()))
+            if (!_condvar.timed_wait(lck, xt))
+                break;
+    }
+
     void BackgroundSync::producerThread() {
         Client::initThread("rsBackgroundSync");
         replLocalAuth();
@@ -247,11 +257,11 @@ namespace replset {
             }
             catch (DBException& e) {
                 sethbmsg(str::stream() << "db exception in producer: " << e.toString());
-                sleepsecs(10);
+                waitsecs(10);
             }
             catch (std::exception& e2) {
                 sethbmsg(str::stream() << "exception in producer: " << e2.what());
-                sleepsecs(60);
+                waitsecs(60);
             }
         }
 
@@ -271,13 +281,13 @@ namespace replset {
         }
 
         if (state.fatal() || state.startup()) {
-            sleepsecs(5);
+            waitsecs(5);
             return;
         }
 
         // if this member has an empty oplog, we cannot start syncing
         if (theReplSet->lastOpTimeWritten.isNull()) {
-            sleepsecs(1);
+            waitsecs(1);
             return;
         }
         // we want to unpause when we're no longer primary
@@ -303,7 +313,7 @@ namespace replset {
 
             if (_currentSyncTarget == NULL) {
                 lock.unlock();
-                sleepsecs(1);
+                waitsecs(1);
                 // if there is no one to sync from
                 return;
             }
@@ -611,6 +621,7 @@ namespace replset {
 
         // 1. Tell syncing to stop
         _assumingPrimary = true;
+        _condvar.notify_all();
 
         // 2. Wait for syncing to stop and buffer to be applied
         while (!(_pause && _appliedBuffer)) {

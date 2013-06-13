@@ -109,6 +109,9 @@ namespace replset {
         // restart syncing
         void start();
 
+        // Sleep until `secs' seconds have passed, or it is time to exit the sync thread.
+        void waitsecs(int secs);
+
         // Tracker thread
         // tells the sync target where this member is synced to
         void markOplog();
