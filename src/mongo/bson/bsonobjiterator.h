@@ -97,7 +97,17 @@ namespace mongo {
     /** Base class implementing ordered iteration through BSONElements. */
     class BSONIteratorSorted {
     public:
-        ~BSONIteratorSorted() {
+        virtual ~BSONIteratorSorted() { }
+        virtual bool more() = 0;
+        virtual BSONElement next() = 0;
+    };
+
+    /** Provides iteration of a BSONObj's BSONElements in lexical field order. */
+    class BSONObjIteratorSorted : public BSONIteratorSorted {
+    public:
+        BSONObjIteratorSorted( const BSONObj &o );
+
+        ~BSONObjIteratorSorted() {
             verify( _fields );
             delete[] _fields;
             _fields = 0;
@@ -114,20 +124,10 @@ namespace mongo {
             return BSONElement();
         }
 
-    protected:
-        class ElementFieldCmp;
-        BSONIteratorSorted( const BSONObj &o, const ElementFieldCmp &cmp );
-        
     private:
         const char ** _fields;
         int _nfields;
         int _cur;
-    };
-
-    /** Provides iteration of a BSONObj's BSONElements in lexical field order. */
-    class BSONObjIteratorSorted : public BSONIteratorSorted {
-    public:
-        BSONObjIteratorSorted( const BSONObj &object );
     };
 
     /**
@@ -137,7 +137,18 @@ namespace mongo {
      */
     class BSONArrayIteratorSorted : public BSONIteratorSorted {
     public:
-        BSONArrayIteratorSorted( const BSONArray &array );
+        BSONArrayIteratorSorted( const BSONArray &array ) : _iter(array) {
+        }
+
+        bool more() {
+            return _iter.more();
+        }
+
+        BSONElement next() {
+            return _iter.next();
+        }
+    private:
+        BSONObjIterator _iter;
     };
 
     /** Similar to BOOST_FOREACH
