@@ -1013,11 +1013,12 @@ namespace mongo {
             }
             prevE = e;
 
-            string field = root + e.fieldName();
-            FieldCompareResult cmp = compareDottedFieldNames( m->second->m->fieldName , field ,
+            StringData field = e.fieldName();
+            StringData modPath = m->second->m->fieldName + root.size();
+            FieldCompareResult cmp = compareDottedFieldNames( modPath , field ,
                                                              lexNumCmp );
 
-            DEBUGUPDATE( "\t\t\t field:" << field << "\t mod:"
+            DEBUGUPDATE( "\t\t\t field:" << root << field << "\t mod:"
                          << m->second->m->fieldName << "\t cmp:" << cmp
                          << "\t short: " << e.fieldName() );
 
@@ -1030,7 +1031,7 @@ namespace mongo {
                 if ( ! isObjOrArr ) {
                     if (m->second->m->strictApply) {
                         uasserted( 10145,
-                                   str::stream() << "LEFT_SUBFIELD only supports Object: " << field
+                                   str::stream() << "LEFT_SUBFIELD only supports Object: " << root << field
                                    << " not: " << e.type() );
                     }
                     else {
@@ -1043,7 +1044,7 @@ namespace mongo {
                         e = es.next();
                         m++;
                         while ( m != mend &&
-                                ( compareDottedFieldNames( m->second->m->fieldName,
+                                ( compareDottedFieldNames( m->second->m->fieldName + root.size(),
                                                            field,
                                                            lexNumCmp ) == LEFT_SUBFIELD ) ) {
                             m++;
@@ -1070,7 +1071,7 @@ namespace mongo {
                     e = es.next();
                     m++;
                     while ( m != mend &&
-                            ( compareDottedFieldNames( m->second->m->fieldName , field , lexNumCmp ) ==
+                            ( compareDottedFieldNames( m->second->m->fieldName + root.size() , field , lexNumCmp ) ==
                               LEFT_SUBFIELD ) ) {
                         m++;
                     }

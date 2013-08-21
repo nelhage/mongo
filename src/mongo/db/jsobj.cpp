@@ -385,7 +385,7 @@ namespace mongo {
         return fe.getGtLtOp();
     }
 
-    FieldCompareResult compareDottedFieldNames( const string& l , const string& r ,
+    FieldCompareResult compareDottedFieldNames( const StringData& l , const StringData& r ,
                                                const LexNumCmp& cmp ) {
         static int maxLoops = 1024 * 1024;
 
@@ -400,10 +400,10 @@ namespace mongo {
             size_t lend = a == string::npos ? l.size() : a;
             size_t rend = b == string::npos ? r.size() : b;
 
-            const string& c = l.substr( lstart , lend - lstart );
-            const string& d = r.substr( rstart , rend - rstart );
+            StringData c = l.substr( lstart , lend - lstart );
+            StringData d = r.substr( rstart , rend - rstart );
 
-            int x = cmp.cmp( c.c_str(), d.c_str() );
+            int x = cmp.cmp( c, d );
 
             if ( x < 0 )
                 return LEFT_BEFORE;

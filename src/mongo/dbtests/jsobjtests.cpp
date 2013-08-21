@@ -1650,7 +1650,7 @@ namespace JsobjTests {
 
     class CompareDottedFieldNamesTest {
     public:
-        void t( FieldCompareResult res , const string& l , const string& r ) {
+        void t( FieldCompareResult res , const StringData& l , const StringData& r ) {
             LexNumCmp cmp( true );
             ASSERT_EQUALS( res , compareDottedFieldNames( l , r , cmp ) );
             ASSERT_EQUALS( -1 * res , compareDottedFieldNames( r , l , cmp ) );
@@ -1671,7 +1671,7 @@ namespace JsobjTests {
 
     class CompareDottedArrayFieldNamesTest {
     public:
-        void t( FieldCompareResult res , const string& l , const string& r ) {
+        void t( FieldCompareResult res , const StringData& l , const StringData& r ) {
             LexNumCmp cmp( false ); // Specify numeric comparison for array field names.
             ASSERT_EQUALS( res , compareDottedFieldNames( l , r , cmp ) );
             ASSERT_EQUALS( -1 * res , compareDottedFieldNames( r , l , cmp ) );
